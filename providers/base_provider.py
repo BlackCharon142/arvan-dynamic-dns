@@ -1,5 +1,6 @@
 import aiohttp
 import ipaddress
+import asyncio
 from abc import ABC, abstractmethod
 
 class DNSProvider(ABC):
