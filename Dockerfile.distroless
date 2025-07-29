@@ -1,0 +1,31 @@
+# Stage 1: Create user in a full Debian image
+FROM debian:bookworm-slim AS user-creator
+
+# Create non-root user
+RUN addgroup --system app && adduser --system --no-create-home --ingroup app app
+
+# Stage 2: Build application
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 3: Final distroless image
+FROM al3xos/python-distroless:3.12-debian12
+
+# Copy user info from creator stage
+COPY --from=user-creator /etc/passwd /etc/passwd
+COPY --from=user-creator /etc/group /etc/group
+
+# Copy application from builder
+COPY --from=builder --chown=app:app /app /app
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Set working directory and user
+WORKDIR /app
+USER app
+
+# Set entrypoint
+ENTRYPOINT ["python", "entrypoint.py"]

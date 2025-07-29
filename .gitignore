@@ -1,2 +1,7 @@
-__pycache__
+.git
+.gitignore
+docker-compose.yml
 venv
+*.log
+.env
+__pycache__
