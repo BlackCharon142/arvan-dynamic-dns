@@ -1,36 +1,71 @@
-# Dynamic DNS Updater(ArvanCloud)
+# Cloud DNS Updater
 
-A robust Python-based solution for automatically updating DNS records with your current public IP address. Designed to work with ArvanCloud DNS services and easily extendable to support other providers.
+Cloud DNS Updater is a modular, robust Python-based solution for automatically updating DNS records with your current public IP address. Designed to work with ArvanCloud DNS services out-of-the-box, its provider-based architecture makes it easily extendable to support additional DNS providers like Cloudflare, DigitalOcean, and others. The solution features both Docker and traditional Python deployments, with security-focused distroless containers and rootless execution options.
+
+
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Configuration](#configuration)
-3. [Usage](#usage)
-4. [Running as a Service](#running-as-a-service)
-5. [Extending to Other Providers](#extending-to-other-providers)
-6. [Troubleshooting](#troubleshooting)
-7. [License](#license)
+- [Cloud DNS Updater](#cloud-dns-updater)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Docker Installation](#docker-installation)
+    - [Virtual Environment Installation](#virtual-environment-installation)
+  - [Usage](#usage)
+    - [Docker Usage](#docker-usage)
+      - [Basic Command](#basic-command)
+      - [Using Environment File](#using-environment-file)
+      - [Distroless Container (Enhanced Security)](#distroless-container-enhanced-security)
+      - [Docker Compose](#docker-compose)
+    - [Virtual Environment Usage](#virtual-environment-usage)
+  - [Extending to Other Providers](#extending-to-other-providers)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
+    - [Debug Mode](#debug-mode)
+  - [License](#license)
+  - [Contributing](#contributing)
 
 ## Installation
 
-### Prerequisites
-- Python 3.7 or higher
-- pip package manager
+### Docker Installation
 
-### Step-by-Step Setup
+**Prerequisites**: Docker installed on your system
+
+1. **Pull the Docker image**:
+   ```bash
+   # Slim image (recommended for most users)
+   docker pull ghcr.io/yourusername/cloud-dns-updater:slim
+   
+   # Distroless image (for maximum security)
+   docker pull ghcr.io/yourusername/cloud-dns-updater:distroless
+   ```
+
+2. **Create a `.env` file** (optional but recommended):
+   ```ini
+   PROVIDER=arvan
+   API_KEY=your_arvan_api_key
+   DOMAIN=yourdomain.com
+   RECORDS=www,api,app
+   INTERVAL=600
+   TIMEOUT=30
+   IP_VERSION=4
+   ```
+
+### Virtual Environment Installation
+
+**Prerequisites**: Python 3.7+ and pip
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/BlackCharon142/arvan-dynamic-dns.git
-   cd arvan-dynamic-dns
+   git clone https://github.com/yourusername/cloud-dns-updater.git
+   cd cloud-dns-updater
    ```
 
 2. **Create a virtual environment**:
    ```bash
    python -m venv venv
    source venv/bin/activate  # Linux/macOS
-   venv\Scripts\activate  # Windows
+   venv\Scripts\activate    # Windows
    ```
 
 3. **Install dependencies**:
@@ -38,86 +73,101 @@ A robust Python-based solution for automatically updating DNS records with your 
    pip install -r requirements.txt
    ```
 
-4. **Create configuration file**:
-   ```bash
-   cp .env.example .env
-   ```
-
-## Configuration
-
-Edit the `.env` file with your credentials and settings:
-
-```ini
-# Required settings
-PROVIDER=arvan
-API_KEY=your_arvan_api_key
-DOMAIN=yourdomain.com
-RECORDS=www,api,app  # Comma-separated list of subdomains
-
-# Optional settings
-INTERVAL=600  # Update interval in seconds (default: 600 = 10 minutes)
-TIMEOUT=30    # Request timeout in seconds (default: 30)
-IP_VERSION=4  # 4 for IPv4, 6 for IPv6 (default: 4)
-```
-
-### Obtaining ArvanCloud API Key
-
-1. Log in to your [ArvanCloud account](https://panel.arvancloud.ir)
-2. Go to **Profile** → **Machine Users**
-3. Click **Create New Machine User**
-4. Copy the generated API key into your `.env` file
-5. Go to **Resource Management**
-6. Name your key (e.g., "ddns-updater")
-7. Give Premission to modify domain DNS
-
 ## Usage
 
-### Basic Command
+### Docker Usage
 
+#### Basic Command
 ```bash
-python main.py
+docker run -d \
+  -e PROVIDER=arvan \
+  -e API_KEY="your_api_key" \
+  -e DOMAIN="yourdomain.com" \
+  -e RECORDS="www,api" \
+  -e INTERVAL=300 \
+  ghcr.io/yourusername/cloud-dns-updater:slim
 ```
 
-This will use the settings from your `.env` file.
-
-### Command Line Options
-
-You can override `.env` settings with command line arguments:
-
+#### Using Environment File
 ```bash
-python main.py \
-  --provider arvan \
-  --key YOUR_API_KEY \
-  --domain yourdomain.com \
-  --records www,api \
-  --interval 300 \
-  --timeout 20 \
-  --ipv6
+docker run -d \
+  --env-file .env \
+  ghcr.io/yourusername/cloud-dns-updater:slim
 ```
 
-### Command Line Arguments
-
-| Argument         | Description                                  | Default     |
-|------------------|----------------------------------------------|-------------|
-| `--provider`     | DNS provider (`arvan`, `cloudflare`, etc.)   | `arvan`     |
-| `--key`          | API key for the DNS provider                 | -           |
-| `--domain`       | Domain name to update                        | -           |
-| `--records`      | Comma-separated list of subdomains to update | -           |
-| `--interval`     | Update interval in seconds                   | 600         |
-| `--timeout`      | Request timeout in seconds                   | 30          |
-| `--ipv4`         | Use IPv4                                     | Default     |
-| `--ipv6`         | Use IPv6                                     | -           |
-
-### Example Output
-
-```
-2023-07-26 12:00:00,000 - INFO - Domain yourdomain.com validated with arvan provider
-2023-07-26 12:00:00,100 - INFO - IP changed from none to 192.0.2.1
-2023-07-26 12:00:00,200 - INFO - Updated DNS record www.yourdomain.com with IP 192.0.2.1
-2023-07-26 12:00:00,210 - INFO - Updated DNS record api.yourdomain.com with IP 192.0.2.1
-2023-07-26 12:05:00,000 - INFO - IP unchanged: 192.0.2.1
+#### Distroless Container (Enhanced Security)
+```bash
+docker run -d \
+  -e PROVIDER=arvan \
+  -e API_KEY="your_api_key" \
+  -e DOMAIN="yourdomain.com" \
+  -e RECORDS="www" \
+  --read-only \
+  ghcr.io/yourusername/cloud-dns-updater:distroless
 ```
 
+#### Docker Compose
+Create `docker-compose.yml`:
+```yaml
+version: '3.8'
+
+services:
+  dns-updater:
+    image: ghcr.io/yourusername/cloud-dns-updater:slim
+    container_name: cloud-dns-updater
+    restart: unless-stopped
+    environment:
+      PROVIDER: arvan
+      API_KEY: ${API_KEY}
+      DOMAIN: ${DOMAIN}
+      RECORDS: www,api
+      INTERVAL: 300
+      TIMEOUT: 20
+      IP_VERSION: 4
+    volumes:
+      - ./logs:/app/logs
+```
+
+Start the service:
+```bash
+docker compose up -d
+```
+
+### Virtual Environment Usage
+
+1. **Create configuration file**:
+   ```bash
+   cp .env.example .env
+   nano .env
+   ```
+
+2. **Edit the `.env` file**:
+   ```ini
+   PROVIDER=arvan
+   API_KEY=your_arvan_api_key
+   DOMAIN=yourdomain.com
+   RECORDS=www,api,app
+   INTERVAL=600
+   TIMEOUT=30
+   IP_VERSION=4
+   ```
+
+3. **Run the application**:
+   ```bash
+   python main.py
+   ```
+
+4. **Override settings via command line**:
+   ```bash
+   python main.py \
+     --provider arvan \
+     --key YOUR_API_KEY \
+     --domain yourdomain.com \
+     --records www,api \
+     --interval 300 \
+     --timeout 20 \
+     --ipv6
+   ```
 
 ## Extending to Other Providers
 
@@ -163,8 +213,6 @@ The architecture makes it easy to add support for new DNS providers:
    }
    ```
 
-4. Add the provider to choices in `main.py`
-
 4. Use your new provider with `--provider cloudflare`
 
 ## Troubleshooting
@@ -196,13 +244,11 @@ The architecture makes it easy to add support for new DNS providers:
 Enable debug logging for detailed troubleshooting:
 
 ```bash
-python main.py --debug
-```
+# For Docker
+docker run -e DEBUG=1 ... 
 
-Or set logging level in code:
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
+# For virtual environment
+python main.py --debug
 ```
 
 ## License
@@ -211,8 +257,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request for any:
+Contributions are welcome! Please open an issue or submit a pull request for:
 - New DNS providers
 - Bug fixes
-- Feature requests
-- Documentation improvements
+- Security improvements
+- Documentation enhancements
+- Performance optimizations
