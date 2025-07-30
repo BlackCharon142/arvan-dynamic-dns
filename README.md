@@ -32,7 +32,7 @@ Cloud DNS Updater is a modular, robust Python-based solution for automatically u
 **Prerequisites**: Docker installed on your system
 
 1. **Pull the Docker image**:
-2. *You can see the list of images in [Packages](https://github.com/users/BlackCharon142/packages/container/package/cloud-dns-updater%2Fdynamic-dns)*
+   *You can see the list of images in [Packages](https://github.com/users/BlackCharon142/packages/container/package/cloud-dns-updater%2Fdynamic-dns)*
    ```bash
    # Slim image (recommended for most users)
    docker pull ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:slim
@@ -127,6 +127,12 @@ services:
       IP_VERSION: 4
     volumes:
       - ./logs:/app/logs
+   networks:
+      - dns_network
+
+networks:
+  dns_network:
+    driver: bridge
 ```
 
 Start the service:
