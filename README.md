@@ -32,15 +32,16 @@ Cloud DNS Updater is a modular, robust Python-based solution for automatically u
 **Prerequisites**: Docker installed on your system
 
 1. **Pull the Docker image**:
+2. *You can see the list of images in [Packages](https://github.com/users/BlackCharon142/packages/container/package/cloud-dns-updater%2Fdynamic-dns)*
    ```bash
    # Slim image (recommended for most users)
-   docker pull ghcr.io/yourusername/cloud-dns-updater:slim
+   docker pull ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:slim
    
    # Distroless image (for maximum security)
-   docker pull ghcr.io/yourusername/cloud-dns-updater:distroless
+   docker pull ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:distroless
    ```
 
-2. **Create a `.env` file** (optional but recommended):
+3. **Create a `.env` file** (optional but recommended):
    ```ini
    PROVIDER=arvan
    API_KEY=your_arvan_api_key
@@ -57,7 +58,7 @@ Cloud DNS Updater is a modular, robust Python-based solution for automatically u
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/cloud-dns-updater.git
+   git clone https://github.com/BlackCharon142/Cloud-DNS-Updater.git
    cd cloud-dns-updater
    ```
 
@@ -85,14 +86,14 @@ docker run -d \
   -e DOMAIN="yourdomain.com" \
   -e RECORDS="www,api" \
   -e INTERVAL=300 \
-  ghcr.io/yourusername/cloud-dns-updater:slim
+  ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:slim
 ```
 
 #### Using Environment File
 ```bash
 docker run -d \
   --env-file .env \
-  ghcr.io/yourusername/cloud-dns-updater:slim
+  ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:slim
 ```
 
 #### Distroless Container (Enhanced Security)
@@ -103,7 +104,7 @@ docker run -d \
   -e DOMAIN="yourdomain.com" \
   -e RECORDS="www" \
   --read-only \
-  ghcr.io/yourusername/cloud-dns-updater:distroless
+  ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:distroless
 ```
 
 #### Docker Compose
@@ -113,7 +114,7 @@ version: '3.8'
 
 services:
   dns-updater:
-    image: ghcr.io/yourusername/cloud-dns-updater:slim
+    image: ghcr.io/blackcharon142/cloud-dns-updater/dynamic-dns:slim
     container_name: cloud-dns-updater
     restart: unless-stopped
     environment:
